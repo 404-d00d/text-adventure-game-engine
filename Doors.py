@@ -1,225 +1,227 @@
 from WorldObject import WorldObject
 
-# governs simple doors (i.e. ones that don't need to be unlocked, can just open and close no issue)
+
 class Door(WorldObject):
-	def __init__(self, inventory, ID):
-		self.ID = ID
-		self.inventory = inventory
-		self.description = ("You see a door.\n"
-					  "There is a doorknob on it")
-		self.inspect = ("The paint on the door appears to be a recent coat.\n"
-						   "There is some noticable grain on the door, along with tiny bumps on the door.\n"
-						   "The doorknob has fingerprint marks on it, from constant usage of staff and guests in the room.")
-		self.options = ("-----\n"
-					  "1. Look Closer\n"
-					  "2. Interact\n"
-					  "3. Show Inventory\n"
-					  "Any Other Option. Do Nothing")
+    def __init__(self, Inventory, Id, IsOpen=False):
+        self.IsOpen = IsOpen
+        Description = (
+            "You see a door.\n"
+            "There is a doorknob on it."
+        )
+        Inspect = (
+            "The paint on the door appears to be a recent coat.\n"
+            "There is some noticeable grain on the door, along with tiny bumps in the surface.\n"
+            "The doorknob has fingerprint marks on it from constant use."
+        )
+        Interaction = ""
+        super().__init__(Inventory, Id, Description, Inspect, Interaction, IsPassable=IsOpen)
+        self.Options = (
+            "-----\n"
+            "1. Look Closer\n"
+            "2. Interact\n"
+            "3. Show Inventory\n"
+            "Any Other Option.\n"
+            "Do Nothing"
+        )
 
-	def alterDoor(self):
-		self.ID *= -1
+    def GetDisplayId(self):
+        return -self.Id if self.IsOpen else self.Id
 
-	def createUnique(self, diffInventory):
-		return Door(diffInventory)
+    def AlterDoor(self):
+        self.IsOpen = not self.IsOpen
+        self.SetIsPassable(self.IsOpen)
 
-	# 1 = look closer
-	# 2 = interact
-	# anything else = do nothing
-	def interact(self, response, player):
-		if response == "1":
-			return (self.inspect)
-		elif response == "2":
-			self.alterDoor()
-			if self.ID > 0:
-				return ("You grab the doorknob, and push the door away from you.\n"
-							   "It locks into the door frame with a thud.\n"
-							   "As you let go of the doorknob, it springs back into the locked position with a click.\n"
-							   "It is now closed.")
-			elif self.ID < 0:
-				return ("You grab the doorknob, and twist it to the right.\n"
-							   "The door unlocks as you pull it towards your body.\n"
-							   "It is now open.")
-		elif response == "3":
-			return (self.lootInventory(player))
-		else:
-			return ("You do nothing")
+    def CreateUnique(self, DifferentInventory):
+        CreatedInventory = [ItemObject.CreateUnique() for ItemObject in DifferentInventory]
+        return Door(CreatedInventory, self.Id, self.IsOpen)
 
-# governs simple locked doors
-# isLocked is boolean
+    def Interact(self, Response, Player, InputFunction=input, OutputFunction=print):
+        if Response == "1":
+            return self.Inspect
+        if Response == "2":
+            self.AlterDoor()
+            if self.IsOpen:
+                return (
+                    "You grab the doorknob and twist it.\n"
+                    "The door swings open."
+                )
+            return (
+                "You push the door shut.\n"
+                "It closes with a thud."
+            )
+        if Response == "3":
+            return self.LootInventory(Player, InputFunction, OutputFunction)
+        return "You do nothing."
+
+
 class LockedDoor(Door):
-	def __init__(self, inventory, state, ID):
-		self.ID = ID + 0.1
-		self.inventory = inventory
-		self.isLocked = state
-		self.description = ("You see a door.\n"
-					  "There is a doorknob on it, as well as a lock hole underneath it.")
-		self.inspect = ("The paint on the door appears to be a recent coat.\n"
-						   "There is some noticable grain on the door, along with tiny bumps on the door.\n"
-						   "The doorknob has fingerprint marks on it, from constant usage of staff and guests in the room.\n"
-						   "There is also a brass plate on the door with a key shaped hole on it.")
-		self.options = ("-----\n"
-					  "1. Look Closer\n"
-					  "2. Interact - doorknob\n"
-					  "3. Interact - lock\n"
-					  "4. Show Inventory\n"
-					  "Any Other Option. Do Nothing")
+    def __init__(self, Inventory, IsLocked, Id, IsOpen=False):
+        self.IsLocked = IsLocked
+        super().__init__(Inventory, Id, IsOpen)
+        self.Description = (
+            "You see a door.\n"
+            "There is a doorknob on it, as well as a lock underneath it."
+        )
+        self.Inspect = (
+            "The paint on the door appears to be a recent coat.\n"
+            "There is some noticeable grain on the door, along with tiny bumps in the surface.\n"
+            "The doorknob has fingerprint marks on it from constant use.\n"
+            "There is also a brass plate on the door with a key-shaped lock."
+        )
+        self.Options = (
+            "-----\n"
+            "1. Look Closer\n"
+            "2. Interact - Doorknob\n"
+            "3. Interact - Lock\n"
+            "4. Show Inventory\n"
+            "Any Other Option.\n"
+            "Do Nothing"
+        )
 
-	def alterDoor(self):
-		if not self.isLocked:
-			self.ID *= -1
+    def UnlockDoor(self):
+        self.IsLocked = False
 
-	def unlockDoor(self):
-		self.isLocked = False
+    def LockDoor(self):
+        self.IsLocked = True
+        if self.IsOpen:
+            self.AlterDoor()
 
-	def lockDoor(self):
-		self.isLocked = True
+    def GetLockState(self):
+        return self.IsLocked
 
-	def getLockState(self):
-		return self.isLocked
+    def CreateUnique(self, DifferentInventory, DifferentState=None):
+        CreatedInventory = [ItemObject.CreateUnique() for ItemObject in DifferentInventory]
+        LockState = self.IsLocked if DifferentState is None else DifferentState
+        return LockedDoor(CreatedInventory, LockState, self.Id, self.IsOpen)
 
-	def createUnique(self, diffInventory, diffState):
-		return LockedDoor(diffInventory, diffState)
+    def Interact(self, Response, Player, InputFunction=input, OutputFunction=print):
+        if Response == "1":
+            return self.Inspect
+        if Response == "2":
+            if self.IsLocked:
+                return "This door is locked."
+            self.AlterDoor()
+            if self.IsOpen:
+                return (
+                    "You grab the doorknob and twist it.\n"
+                    "The door swings open."
+                )
+            return (
+                "You push the door shut.\n"
+                "It closes with a thud."
+            )
+        if Response == "3":
+            if self.IsLocked:
+                self.UnlockDoor()
+                return "You unlock the door.\nThe door is now unlocked."
+            self.LockDoor()
+            return "You lock the door.\nThe door is now locked."
+        if Response == "4":
+            return self.LootInventory(Player, InputFunction, OutputFunction)
+        return "You do nothing."
 
-	def interact(self, response, player):
-		if response == "1":
-			return (self.inspect)
-		elif response == "2":
-			if self.isLocked:
-				return ("This door is locked.")
-			else:
-				self.alterDoor()
-				if self.ID > 0:
-					return ("You grab the doorknob, and push the door away from you.\n"
-								   "It locks into the door frame with a thud.\n"
-								   "As you let go of the doorknob, it springs back into the locked position with a click.\n"
-								   "It is now closed.")
-				elif self.ID < 0:
-					return ("You grab the doorknob, and twist it to the right.\n"
-								   "The door unlocks as you pull it towards your body.\n"
-								   "It is now open.")
-		elif response == "3":
-			if self.isLocked:
-				self.unlockDoor()
-				return ("You unlock the door. The door is now unlocked.")
-			else:
-				self.lockDoor()
-				return ("You lock the door. The door is now locked.")
-		elif response == "4":
-			return (self.lootInventory(player))
-		else:
-			return ("You do nothing.")
 
 class KeyedLockedDoor(LockedDoor):
-	def __init__(self, inventory, state, keyID, ID):
-		self.ID = ID + 0.12
-		self.keyID = keyID
-		self.inventory = inventory
-		self.isLocked = state
-		self.description = ("You see a door.\n"
-					  "There is a doorknob on it, as well as a lock hole underneath it.")
-		self.inspect = ("The paint on the door appears to be a recent coat.\n"
-						   "There is some noticable grain on the door, along with tiny bumps on the door.\n"
-						   "The doorknob has fingerprint marks on it, from constant usage of staff and guests in the room.\n"
-						   "There is also a brass plate on the door with a key shaped hole on it.")
-		self.options = ("-----\n"
-					  "1. Look Closer\n"
-					  "2. Interact - doorknob\n"
-					  "3. Interact - lock\n"
-					  "4. Show Inventory\n"
-					  "Any Other Option. Do Nothing")
+    def __init__(self, Inventory, IsLocked, KeyId, Id, IsOpen=False):
+        self.KeyId = KeyId
+        super().__init__(Inventory, IsLocked, Id, IsOpen)
 
-	def createUnique(self, diffInventory, diffState, diffKeyID):
-		return LockedDoor(diffInventory, diffState, diffKeyID)
+    def CreateUnique(self, DifferentInventory, DifferentState=None, DifferentKeyId=None):
+        CreatedInventory = [ItemObject.CreateUnique() for ItemObject in DifferentInventory]
+        LockState = self.IsLocked if DifferentState is None else DifferentState
+        DoorKeyId = self.KeyId if DifferentKeyId is None else DifferentKeyId
+        return KeyedLockedDoor(CreatedInventory, LockState, DoorKeyId, self.Id, self.IsOpen)
 
-	def interact(self, response, player):
-		if response == "1":
-			return (self.inspect)
-		elif response == "2":
-			if self.isLocked:
-				return ("This door is locked.")
-			else:
-				self.alterDoor()
-				if self.ID > 0:
-					return ("You grab the doorknob, and push the door away from you.\n"
-								   "It locks into the door frame with a thud.\n"
-								   "As you let go of the doorknob, it springs back into the locked position with a click.\n"
-								   "It is now closed.")
-				elif self.ID < 0:
-					return ("You grab the doorknob, and twist it to the right.\n"
-								   "The door unlocks as you pull it towards your body.\n"
-								   "It is now open.")
-		elif response == "3":
-			for item in playerInventory.getInventory():
-				if item.getID() == "key" and item.getDoorID() == self.keyID:
-						if self.isLocked:
-							self.unlockDoor()
-							return ("You unlock the door.")
-						else:
-							self.lockDoor()
-							return ("You lock the door.")
-			return ("You cannot unlock this door.")
-		elif response == "4":
-			return (self.lootInventory(player))
-		else:
-			return ("You do nothing.")
+    def Interact(self, Response, Player, InputFunction=input, OutputFunction=print):
+        if Response == "1":
+            return self.Inspect
+        if Response == "2":
+            if self.IsLocked:
+                return "This door is locked."
+            self.AlterDoor()
+            if self.IsOpen:
+                return (
+                    "You grab the doorknob and twist it.\n"
+                    "The door swings open."
+                )
+            return (
+                "You push the door shut.\n"
+                "It closes with a thud."
+            )
+        if Response == "3":
+            for ItemObject in Player.GetInventory():
+                if ItemObject.GetId() == "key" and ItemObject.GetDoorId() == self.KeyId:
+                    if self.IsLocked:
+                        self.UnlockDoor()
+                        return "You unlock the door."
+                    self.LockDoor()
+                    return "You lock the door."
+            return "You cannot unlock this door."
+        if Response == "4":
+            return self.LootInventory(Player, InputFunction, OutputFunction)
+        return "You do nothing."
 
 
-# governs doors that are locked via code (touchpad or multi dial based locks)
-# isLocked is boolean
 class CodeLockedDoor(LockedDoor):
-	def __init__(self, inventory, state, code, ID):
-		self.ID = ID + 0.11
-		self.inventory = inventory
-		self.isLocked = state
-		self.code = code
-		self.description = ("You see a door.\n"
-					  "There is a doorknob on it, as well as a keypad underneath it.")
-		self.inspect = ("The paint on the door appears to be a recent coat.\n"
-						   "There is some noticable grain on the door, along with tiny bumps on the door.\n"
-						   "The doorknob has fingerprint marks on it, from constant usage of staff and guests in the room.\n"
-						   "There keypad is worn and smudged, also from constant use.")
-		self.options = ("-----\n"
-					  "1. Look Closer\n"
-					  "2. Interact - doorknob\n"
-					  "3. Interact - keypad\n"
-					  "4. Show Inventory\n"
-					  "Any Other Option. Do Nothing")
+    def __init__(self, Inventory, IsLocked, Code, Id, IsOpen=False):
+        self.Code = str(Code)
+        super().__init__(Inventory, IsLocked, Id, IsOpen)
+        self.Description = (
+            "You see a door.\n"
+            "There is a doorknob on it, as well as a keypad underneath it."
+        )
+        self.Inspect = (
+            "The paint on the door appears to be a recent coat.\n"
+            "There is some noticeable grain on the door, along with tiny bumps in the surface.\n"
+            "The doorknob has fingerprint marks on it from constant use.\n"
+            "The keypad is worn and smudged from constant use."
+        )
+        self.Options = (
+            "-----\n"
+            "1. Look Closer\n"
+            "2. Interact - Doorknob\n"
+            "3. Interact - Keypad\n"
+            "4. Show Inventory\n"
+            "Any Other Option.\n"
+            "Do Nothing"
+        )
 
-	def keypadResponse(self, inputtedCode):
-		if inputtedCode == self.code:
-			self.unlockDoor()
-			return ("You hear a nice tone. THe door is unlocked.")
-		else:
-			if not self.isLocked:
-				self.lockDoor()
-				return ("You hear a harsh beep. The door is now locked.")
-			else:
-				return ("You hear a harsh beep. The door is still locked.")
+    def KeypadResponse(self, InputtedCode):
+        if str(InputtedCode) == self.Code:
+            self.UnlockDoor()
+            return "You hear a pleasant tone. The door is unlocked."
 
-	def createUnique(self, diffInventory, diffState, code):
-		return LockedDoor(diffInventory, diffState, code)
+        if not self.IsLocked:
+            self.LockDoor()
+            return "You hear a harsh beep. The door is now locked."
 
-	def interact(self, response, player):
-		if response == "1":
-			return (self.inspect)
-		elif response == "2":
-			if self.isLocked:
-				return ("This door is locked.")
-			else:
-				self.alterDoor()
-				if self.ID > 0:
-					return ("You grab the doorknob, and push the door away from you.\n"
-								   "It locks into the door frame with a thud.\n"
-								   "As you let go of the doorknob, it springs back into the locked position with a click.\n"
-								   "It is now closed.")
-				elif self.ID < 0:
-					return ("You grab the doorknob, and twist it to the right.\n"
-								   "The door unlocks as you pull it towards your body.\n"
-								   "It is now open.")
-		elif response == "3":
-			keycode = input("Enter Keypad Code: ")
-			return (self.keypadResponse(keycode))
-		elif response == "4":
-			return (self.lootInventory(player))
-		else:
-			return ("You do nothing.")
+        return "You hear a harsh beep. The door is still locked."
+
+    def CreateUnique(self, DifferentInventory, DifferentState=None, DifferentCode=None):
+        CreatedInventory = [ItemObject.CreateUnique() for ItemObject in DifferentInventory]
+        LockState = self.IsLocked if DifferentState is None else DifferentState
+        DoorCode = self.Code if DifferentCode is None else DifferentCode
+        return CodeLockedDoor(CreatedInventory, LockState, DoorCode, self.Id, self.IsOpen)
+
+    def Interact(self, Response, Player, InputFunction=input, OutputFunction=print):
+        if Response == "1":
+            return self.Inspect
+        if Response == "2":
+            if self.IsLocked:
+                return "This door is locked."
+            self.AlterDoor()
+            if self.IsOpen:
+                return (
+                    "You grab the doorknob and twist it.\n"
+                    "The door swings open."
+                )
+            return (
+                "You push the door shut.\n"
+                "It closes with a thud."
+            )
+        if Response == "3":
+            Keycode = InputFunction("Enter Keypad Code: ")
+            return self.KeypadResponse(Keycode)
+        if Response == "4":
+            return self.LootInventory(Player, InputFunction, OutputFunction)
+        return "You do nothing."
