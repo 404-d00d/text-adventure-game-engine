@@ -1,36 +1,81 @@
 class Item:
-	def __init__(self, ID, name, description, isStackable, quantity=1, maxQuantity=1):
-		self.ID = ID
-		self.name = name
-		self.description = description
-		self.isStackable = isStackable
-		self.quantity = 1 if not isStackable else quantity
-		self.maxQuantity = 1 if not isStackable else maxQuantity
+    def __init__(self, Id, Name, Description, IsStackable, Quantity=1, MaxQuantity=1):
+        self.Id = Id
+        self.Name = Name
+        self.Description = Description
+        self.IsStackable = IsStackable
+        self.Quantity = 1 if not IsStackable else Quantity
+        self.MaxQuantity = 1 if not IsStackable else MaxQuantity
 
-	def getID(self):
-		return self.ID
+    def GetId(self):
+        return self.Id
 
-	def getName(self):
-		return self.name
+    def GetName(self):
+        return self.Name
 
-	def getDescription(self):
-		return self.description
+    def GetDescription(self):
+        return self.Description
 
-	def getQuantity(self):
-		return self.quantity
+    def GetQuantity(self):
+        return self.Quantity
 
-	def createInstance(self):
-		return "item"
+    def GetIsStackable(self):
+        return self.IsStackable
+
+    def GetMaxQuantity(self):
+        return self.MaxQuantity
+
+    def CanStackWith(self, OtherItem):
+        return (
+            self.IsStackable
+            and OtherItem.GetIsStackable()
+            and self.Id == OtherItem.GetId()
+            and self.Name == OtherItem.GetName()
+        )
+
+    def AddQuantity(self, Amount):
+        if not self.IsStackable:
+            return False
+
+        NewQuantity = self.Quantity + Amount
+        if self.MaxQuantity > 0:
+            NewQuantity = min(NewQuantity, self.MaxQuantity)
+        self.Quantity = NewQuantity
+        return True
+
+    def RemoveQuantity(self, Amount):
+        if not self.IsStackable:
+            self.Quantity = 0
+            return
+
+        self.Quantity = max(0, self.Quantity - Amount)
+
+    def CreateUnique(self):
+        return Item(
+            self.Id,
+            self.Name,
+            self.Description,
+            self.IsStackable,
+            self.Quantity,
+            self.MaxQuantity,
+        )
+
 
 class Key(Item):
-	def __init__(self, ID, name, description, isStackable, DoorID, quantity=1, maxQuantity=1):
-		self.ID = ID
-		self.name = name
-		self.description = description
-		self.isStackable = isStackable
-		self.DoorID = DoorID
-		self.quantity = 1 if not isStackable else quantity
-		self.maxQuantity = 1 if not isStackable else maxQuantity
+    def __init__(self, Id, Name, Description, IsStackable, DoorId, Quantity=1, MaxQuantity=1):
+        super().__init__(Id, Name, Description, IsStackable, Quantity, MaxQuantity)
+        self.DoorId = DoorId
 
-	def getDoorID(self):
-		return self.DoorID
+    def GetDoorId(self):
+        return self.DoorId
+
+    def CreateUnique(self):
+        return Key(
+            self.Id,
+            self.Name,
+            self.Description,
+            self.IsStackable,
+            self.DoorId,
+            self.Quantity,
+            self.MaxQuantity,
+        )
