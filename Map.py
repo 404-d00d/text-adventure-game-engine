@@ -1,22 +1,21 @@
 class Map:
-	# id is map Id, cells is 2d array of all world objects making the map, mapDict is a dict with value as dict
-	def __init__(self, ID, cells, mapDict, mapSummary):
-		self.ID = ID
-		self.cells = cells
-		self.connectingRooms = mapDict
-		self.mapSummary = mapSummary
+    def __init__(self, Id, Cells, MapDict, MapSummary):
+        self.Id = Id
+        self.Cells = Cells
+        self.ConnectingRooms = MapDict
+        self.MapSummary = MapSummary
 
-	def getMap(self):
-		return self.cells
+    def GetMap(self):
+        return self.Cells
 
-	def getID(self):
-		return self.ID
+    def GetId(self):
+        return self.Id
 
-	def getConnections(self):
-		return self.connectingRooms
+    def GetConnections(self):
+        return self.ConnectingRooms
 
-	def getSpecificCell(self, X, Y):
-		return self.cells[Y][X]
+    def GetSpecificCell(self, X, Y):
+        return self.Cells[Y][X]
 
-	def getMapSummary(self):
-		return self.mapSummary
+    def GetMapSummary(self):
+        return self.MapSummary
