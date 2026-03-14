@@ -1,97 +1,122 @@
 class Character:
-	# id, x, y, direction, and room are ints
-	# 1 = N, 2 = E, 3 = S, 4 = W
-	def __init__(self, iD, x, y, direction, room, inventory):
-		self.id = iD
-		self.x = x
-		self.y = y
-		self.direction = direction
-		self.room = room
-		self.inventory = inventory
+    DirectionOffsets = {
+        1: (0, -1),
+        2: (1, 0),
+        3: (0, 1),
+        4: (-1, 0),
+    }
 
-	def getID(self):
-		return self.id
+    MovementOffsets = {
+        "forward": 0,
+        "sideright": 1,
+        "backward": 2,
+        "sideleft": 3,
+    }
 
-	def getX(self):
-		return self.x
+    def __init__(self, Id, X, Y, Direction, Room, Inventory):
+        self.Id = Id
+        self.X = X
+        self.Y = Y
+        self.Direction = Direction
+        self.Room = Room
+        self.Inventory = list(Inventory)
 
-	def getY(self):
-		return self.y
+    def GetId(self):
+        return self.Id
 
-	def getDirection(self):
-		return self.direction
+    def GetX(self):
+        return self.X
 
-	def getRoom(self):
-		return self.room
+    def GetY(self):
+        return self.Y
 
-	def changeRoom(self, newRoomID):
-		self.room = newRoomID
+    def GetDirection(self):
+        return self.Direction
 
-	def getInventory(self):
-		return self.inventory
+    def GetRoom(self):
+        return self.Room
 
-	def showInventory(self):
-		print("===")
-		print("PLAYER INVENTORY")
-		for x in range(len(self.inventory)):
-			print(str(x)+": "+str(self.inventory[x].getQuantity())+" "+self.inventory[x].getName())
+    def ChangeRoom(self, NewRoomId):
+        self.Room = NewRoomId
 
-	def removeItem(self, item):
-		self.inventory.remove(item)
+    def GetInventory(self):
+        return self.Inventory
 
-	def addItem(self, item):
-		self.inventory.append(item)
+    def FormatInventory(self):
+        Lines = ["===", "PLAYER INVENTORY"]
+        if not self.Inventory:
+            Lines.append("(empty)")
+        else:
+            for Index, ItemObject in enumerate(self.Inventory):
+                Lines.append(
+                    str(Index)
+                    + ": "
+                    + str(ItemObject.GetQuantity())
+                    + " "
+                    + ItemObject.GetName()
+                )
+        return "\n".join(Lines)
 
-	# only for setting the character positions when they move to the next room
-	def setX(self, newX):
-		self.x = newX
+    def ShowInventory(self):
+        print(self.FormatInventory())
 
-	def setY(self, newY):
-		self.y = newY
+    def RemoveItem(self, ItemObject):
+        self.Inventory.remove(ItemObject)
 
-	# handles direction regarding character interaction
-	def charDirection(self, direction):
-		x1, y1 = {
-			1: (0, -1),  # N
-			2: (1, 0),   # E
-			3: (0, 1),   # S
-			4: (-1, 0),  # W
-		}[direction]
-		return x1, y1
+    def RemoveItemAt(self, Index):
+        return self.Inventory.pop(Index)
 
-	# moves character (either via rotation or movement)
-	def moveCharacter(self, mapCord, command):
-		# Step 1: Rotate character
-		if command == "right":  # turn right
-			self.direction = (self.direction % 4) + 1
-			return
-		elif command == "left":  # turn left
-			self.direction = 4 if self.direction == 1 else self.direction - 1
-			return
+    def AddItem(self, ItemObject):
+        if ItemObject.GetIsStackable():
+            for ExistingItem in self.Inventory:
+                if ExistingItem.CanStackWith(ItemObject):
+                    ExistingItem.AddQuantity(ItemObject.GetQuantity())
+                    return
+        self.Inventory.append(ItemObject)
 
-		# Step 2: Determine movement vector based on command and direction
-		forwardMap = {
-			'forward': 0,
-			'sideleft': 3,
-			'backward': 2,
-			'sideright': 1
-		}
-		if command not in forwardMap:
-			return  # invalid movement key
+    def SetX(self, NewX):
+        self.X = NewX
 
-		# Rotate direction to get movement vector
-		direction = self.direction
-		offset = (forwardMap[command] + direction - 1) % 4 + 1
+    def SetY(self, NewY):
+        self.Y = NewY
 
-		dx, dy = self.charDirection(offset)
+    def GetDirectionalOffset(self, Direction):
+        return self.DirectionOffsets[Direction]
 
-		# Step 3: Calculate new position
-		newX = self.x + dx
-		newY = self.y + dy
+    def RotateRight(self):
+        self.Direction = (self.Direction % 4) + 1
 
-		# Step 4: Check boundaries
-		if 0 <= newY < len(mapCord) and 0 <= newX < len(mapCord[0]):
-			# Step 5: Check for passable tile
-			if mapCord[newY][newX].getID() <= 0:
-				self.x = newX
-				self.y = newY
+    def RotateLeft(self):
+        self.Direction = 4 if self.Direction == 1 else self.Direction - 1
+
+    def GetMovementOffset(self, Command):
+        RotationOffset = self.MovementOffsets[Command]
+        TargetDirection = (self.Direction + RotationOffset - 1) % 4 + 1
+        return self.GetDirectionalOffset(TargetDirection)
+
+    def MoveCharacter(self, MapGrid, Command):
+        if Command == "right":
+            self.RotateRight()
+            return True
+
+        if Command == "left":
+            self.RotateLeft()
+            return True
+
+        if Command not in self.MovementOffsets:
+            return False
+
+        DeltaX, DeltaY = self.GetMovementOffset(Command)
+        NewX = self.X + DeltaX
+        NewY = self.Y + DeltaY
+
+        if not (0 <= NewY < len(MapGrid) and 0 <= NewX < len(MapGrid[0])):
+            return False
+
+        TargetObject = MapGrid[NewY][NewX]
+        if TargetObject.GetIsPassable():
+            self.X = NewX
+            self.Y = NewY
+            return True
+
+        return False
