@@ -1,97 +1,127 @@
-from Character import Character
-import math
-
 class Gameplay:
-	# governs character interactions with objects and how objects are modified
-	def __init__(self):
-		self.result = ""
+    CommandHandlers = {
+        "e": "RotateRight",
+        "q": "RotateLeft",
+        "w": "MoveForward",
+        "a": "MoveSideLeft",
+        "s": "MoveBackward",
+        "d": "MoveSideRight",
+        "f": "InteractForward",
+        "F": "InteractCurrentTile",
+        "i": "InventoryMenu",
+    }
 
-	def showResult(self):
-		return self.result
+    def __init__(self, InputFunction=input, OutputFunction=print):
+        self.Result = ""
+        self.InputFunction = InputFunction
+        self.OutputFunction = OutputFunction
 
-	def setResult(self, message):
-		self.result = message
+    def ShowResult(self):
+        return self.Result
 
-	def clearResult(self):
-		self.result = ""
+    def SetResult(self, Message):
+        self.Result = Message
 
-	# if infront is true that means it takes into account direction. if false then character loots space on top.
-	def interactObj(self, character, mapCord, inFront):
-		inp = ""
-		if inFront:
-			x1, y1 = character.charDirection(character.getDirection())
-		else:
-			x1, y1 = 0, 0
-		if 0 <= character.getX() + x1 < len(mapCord[0]) and 0 <= character.getY() + y1 < len(mapCord):
-			print(mapCord[character.getY() + y1][character.getX() + x1].showDescription())
-			print(mapCord[character.getY() + y1][character.getX() + x1].showOptions())
-			inp = input(": ")
-			self.result = mapCord[character.getY() + y1][character.getX() + x1].interact(inp, character)
-		else:
-			self.result = "You can't interact with this object."
+    def ClearResult(self):
+        self.Result = ""
 
-	# def serachArray(self, inventory):
-	# 	selection = ""
-	# 	while selection != "e":
-	# 		try:
-	# 			inventory.showInventory()
-	# 			print("e: exit inventory")
-	# 			selection = input("Choose your option: ")
-	# 			selection = int(selection)
-	# 			print(inventory.getInventory()[selection].getName())
-	# 			print(inventory.getInventory()[selection].getDescription())
-	# 			print("")
-	# 		except (ValueError, IndexError):
-	# 			print("This option is not valid.")
+    def GetInteractionTarget(self, CharacterObject, MapGrid, InFront):
+        if InFront:
+            DeltaX, DeltaY = CharacterObject.GetDirectionalOffset(CharacterObject.GetDirection())
+        else:
+            DeltaX, DeltaY = 0, 0
 
-	def inventoryMenu(self, player):
-		selection = ""
-		while selection != "e":
-			try:
-				player.showInventory()
-				print("e: exit inventory")
-				selection = input("Choose your option: ")
-				selection = int(selection)
-				print(player.getInventory()[selection].getName())
-				print(player.getInventory()[selection].getDescription())
-				print("POSSIBLE ACTIONS:")
-				print("1. Drop Item\n"
-					  "e. exit possible actions")
-			except (ValueError, IndexError):
-				print("This option is not valid.")
+        TargetX = CharacterObject.GetX() + DeltaX
+        TargetY = CharacterObject.GetY() + DeltaY
 
+        if 0 <= TargetY < len(MapGrid) and 0 <= TargetX < len(MapGrid[0]):
+            return MapGrid[TargetY][TargetX]
+        return None
 
-	# for the player character actions only
-	def characterActions(self, act, mapCord, playerCharacter, isSingleCommand):
-		commandHandlers = {
-			"e": lambda: playerCharacter.moveCharacter(mapCord, "right"),
-			"q": lambda: playerCharacter.moveCharacter(mapCord, "left"),
-			"w": lambda: playerCharacter.moveCharacter(mapCord, "forward"),
-			"a": lambda: playerCharacter.moveCharacter(mapCord, "sideleft"),
-			"s": lambda: playerCharacter.moveCharacter(mapCord, "backward"),
-			"d": lambda: playerCharacter.moveCharacter(mapCord, "sideright"),
-			"f": lambda: self.interactObj(playerCharacter, mapCord, True),
-			"F": lambda: self.interactObj(playerCharacter, mapCord, False),
-			"i": lambda: self.inventoryMenu(playerCharacter)
-		}
+    def InteractObject(self, CharacterObject, MapGrid, InFront):
+        TargetObject = self.GetInteractionTarget(CharacterObject, MapGrid, InFront)
+        if TargetObject is None:
+            self.Result = "You cannot interact with this object."
+            return
 
-		# to make it single command, remove for loop and change a to act.
+        self.OutputFunction(TargetObject.ShowDescription())
+        self.OutputFunction(TargetObject.ShowOptions())
+        Response = self.InputFunction(": ").strip()
+        self.Result = TargetObject.Interact(
+            Response,
+            CharacterObject,
+            self.InputFunction,
+            self.OutputFunction,
+        )
 
-		if not isSingleCommand:
-			for a in act:
-				handler = commandHandlers.get(a)
-				if handler:
-					handler()
-					# due to the way commands are handled if someone interacts with an object - if the user has keys after the interact key then the interactions are overwritten by the not a valid command message
-					# this prevents the interaction response from being overwritten.
-					if a=="f" or a=="F":
-						break
-				else:
-					self.result = "ERROR: Not a valid command"
-		else:
-			handler = commandHandlers.get(act)
-			if handler:
-				handler()
-			else:
-				self.result = "ERROR: Not a valid command"
+    def InventoryMenu(self, Player):
+        while True:
+            self.OutputFunction(Player.FormatInventory())
+            self.OutputFunction("e: Exit Inventory")
+            Selection = self.InputFunction("Choose Your Option: ").strip()
 
+            if Selection.lower() == "e":
+                self.Result = "You close your inventory."
+                return
+
+            try:
+                SelectionIndex = int(Selection)
+                ItemObject = Player.GetInventory()[SelectionIndex]
+                self.OutputFunction(ItemObject.GetName())
+                self.OutputFunction(ItemObject.GetDescription())
+                self.OutputFunction("")
+            except (ValueError, IndexError):
+                self.OutputFunction("This option is not valid.")
+
+    def ExecuteCommand(self, CommandCharacter, MapGrid, PlayerCharacter):
+        if CommandCharacter == "e":
+            PlayerCharacter.MoveCharacter(MapGrid, "right")
+            return True
+
+        if CommandCharacter == "q":
+            PlayerCharacter.MoveCharacter(MapGrid, "left")
+            return True
+
+        if CommandCharacter == "w":
+            PlayerCharacter.MoveCharacter(MapGrid, "forward")
+            return True
+
+        if CommandCharacter == "a":
+            PlayerCharacter.MoveCharacter(MapGrid, "sideleft")
+            return True
+
+        if CommandCharacter == "s":
+            PlayerCharacter.MoveCharacter(MapGrid, "backward")
+            return True
+
+        if CommandCharacter == "d":
+            PlayerCharacter.MoveCharacter(MapGrid, "sideright")
+            return True
+
+        if CommandCharacter == "f":
+            self.InteractObject(PlayerCharacter, MapGrid, True)
+            return False
+
+        if CommandCharacter == "F":
+            self.InteractObject(PlayerCharacter, MapGrid, False)
+            return False
+
+        if CommandCharacter == "i":
+            self.InventoryMenu(PlayerCharacter)
+            return False
+
+        if CommandCharacter.strip() == "":
+            return True
+
+        self.Result = "ERROR: Not a valid command."
+        return False
+
+    def CharacterActions(self, ActionText, MapGrid, PlayerCharacter, IsSingleCommand):
+        if IsSingleCommand:
+            self.ExecuteCommand(ActionText, MapGrid, PlayerCharacter)
+            return
+
+        for CommandCharacter in ActionText:
+            ShouldContinue = self.ExecuteCommand(CommandCharacter, MapGrid, PlayerCharacter)
+            if not ShouldContinue:
+                break
