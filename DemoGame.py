@@ -1,112 +1,154 @@
-# MADE BY DAVID TRAN
-
-# must import all of these in order for the text game to work properly
 from Character import Character
 from Display import Display
 from Gameplay import Gameplay
 from WorldObject import WorldObject
-from Doors import Door, LockedDoor, CodeLockedDoor, KeyedLockedDoor
+from Doors import Door, CodeLockedDoor, KeyedLockedDoor
 from Toilet import Toilet
 from Map import Map
-from Item import Item, Key
+from Item import Key
 
-playerCharacter = Character(0, 2, 2, 1, 1, [])
-display = Display()
-gamePlay = Gameplay()
 
-# each dictionary corresponds to a room
-# left is space player must reach in room : right is (new mapID : position player will be teleported to in next)
-mapTransition1 = {(4, 1) : {2 : (1, 1)}}
-mapTransition2 = {(0, 1) : {1 : (3, 1)},
-				  (2, 9) : {3 : (0, 0)}}
+def BuildGame():
+    PlayerCharacter = Character(0, 2, 2, 1, 1, [])
+    DisplayObject = Display()
+    GameplayObject = Gameplay()
 
-# items in the game
-key1 = Key("key", "Worn Door Key", "A key for a hotel room. It is very worn.", False, 12345)
+    MapTransition1 = {
+        (4, 1): {2: (1, 1)},
+    }
 
-#playerCharacter.addItem(key1)
+    MapTransition2 = {
+        (0, 1): {1: (3, 1)},
+        (2, 9): {3: (0, 0)},
+    }
 
-# objects for the map
-space = WorldObject([], 0, "", "", "")
-wall = WorldObject([], 1, "", "", "")
-sink = WorldObject([], 7, "", "", "")
-mirror = WorldObject([], 6, "", "", "")
-vdoor = Door([], 2)
-vdoor2 = KeyedLockedDoor([], True, 12345, 2)
-hdoor = CodeLockedDoor([], True, "1492", 4)
-toilet = Toilet([], 3)
+    Key1 = Key(
+        "key",
+        "Worn Door Key",
+        "A key for a hotel room.\nIt is very worn.",
+        False,
+        12345,
+    )
 
-cord = [[wall.createUnique([]), wall.createUnique([]), wall.createUnique([]), wall.createUnique([]), wall.createUnique([])],  # List of coordinates for the map
-		[wall.createUnique([]), space.createUnique([]), toilet, space.createUnique([]), vdoor],
-		[wall.createUnique([]), space.createUnique([]), space.createUnique([]), space.createUnique([key1]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), space.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), space.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), wall.createUnique([]), wall.createUnique([]), wall.createUnique([]), wall.createUnique([])]]
+    Space = WorldObject([], 0, "", "", "", IsPassable=True)
+    Wall = WorldObject([], 1, "", "", "", IsPassable=False)
+    Sink = WorldObject([], 7, "", "", "", IsPassable=False)
+    Mirror = WorldObject([], 6, "", "", "", IsPassable=False)
+    VerticalDoor = Door([], 2)
+    LockedVerticalDoor = KeyedLockedDoor([], True, 12345, 2)
+    HorizontalCodeDoor = CodeLockedDoor([], True, "1492", 4)
+    ToiletObject = Toilet([], 3)
 
-cord1 = [[wall.createUnique([]), hdoor, wall.createUnique([])],  # List of coordinates for the map
-		[vdoor, space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), wall.createUnique([])],
-		[wall.createUnique([]), space.createUnique([]), vdoor2],
-		[wall.createUnique([]), wall.createUnique([]), wall.createUnique([])]]
+    BathroomMapGrid = [
+        [Wall.CreateUnique([]), Wall.CreateUnique([]), Wall.CreateUnique([]), Wall.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), ToiletObject, Space.CreateUnique([]), VerticalDoor],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Space.CreateUnique([]), Space.CreateUnique([Key1]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Space.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Wall.CreateUnique([]), Wall.CreateUnique([]), Wall.CreateUnique([]), Wall.CreateUnique([])],
+    ]
 
-map1Desc = ("-----\n"
-				  "You are in a bathroom.\n"
-				  "It is brightly lit and smells like lavender.")
-map2Desc = ("-----\n"
-				  "You are in a hallway.\n"
-				  "It is dull yellow and white and its odor is reminsicent of bleach.")
+    HallwayMapGrid = [
+        [Wall.CreateUnique([]), HorizontalCodeDoor, Wall.CreateUnique([])],
+        [VerticalDoor.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [Wall.CreateUnique([]), Space.CreateUnique([]), LockedVerticalDoor],
+        [Wall.CreateUnique([]), Wall.CreateUnique([]), Wall.CreateUnique([])],
+    ]
 
-Map1 = Map(1, cord, mapTransition1, map1Desc)
-Map2 = Map(2, cord1, mapTransition2, map2Desc)
+    BathroomDescription = (
+        "-----\n"
+        "You are in a bathroom.\n"
+        "It is brightly lit and smells like lavender."
+    )
 
-characterList = [playerCharacter]
+    HallwayDescription = (
+        "-----\n"
+        "You are in a hallway.\n"
+        "It is dull yellow and white and its odor is reminiscent of bleach."
+    )
 
-maps = [cord, cord1]
-mapObjects = {
-	1 : Map1,
-	2 : Map2
-}
+    Map1 = Map(1, BathroomMapGrid, MapTransition1, BathroomDescription)
+    Map2 = Map(2, HallwayMapGrid, MapTransition2, HallwayDescription)
 
-act = ""
+    CharacterList = [PlayerCharacter]
+    MapObjects = {
+        1: Map1,
+        2: Map2,
+    }
 
-res = ""
+    return PlayerCharacter, DisplayObject, GameplayObject, CharacterList, MapObjects
 
-def main():
-	display.clearScreen()
 
-	print("You wake up, and find yourself on the floor, laying on your back.\n"
-		  "You blink rapidly, and soon push yourself off the ground, and stand upright, your drowsiness fading as quickly as you woke up.\n")
+def HandleRoomTransition(PlayerCharacter, GameplayObject, MapObjects):
+    CurrentMap = MapObjects.get(PlayerCharacter.GetRoom())
+    if CurrentMap is None:
+        return
 
-	pauser = input()
+    Transitions = CurrentMap.GetConnections()
+    TransitionData = Transitions.get((PlayerCharacter.GetX(), PlayerCharacter.GetY()))
+    if TransitionData is None:
+        return
 
-	while playerCharacter.getRoom() != 3:
-		# actual block for handling gameplay and display
-		display.clearScreen()
-		display.printDisplay(characterList, mapObjects.get(playerCharacter.getRoom()).getMap())
-		print(gamePlay.showResult())
-		gamePlay.clearResult()
-		print(mapObjects.get(playerCharacter.getRoom()).getMapSummary())
-		act = input("COMMAND: ")
-		gamePlay.characterActions(act, mapObjects.get(playerCharacter.getRoom()).getMap(), playerCharacter, False)
+    NewRoomId = list(TransitionData.keys())[0]
+    NewPosition = TransitionData[NewRoomId]
+    PlayerCharacter.SetX(NewPosition[0])
+    PlayerCharacter.SetY(NewPosition[1])
+    PlayerCharacter.ChangeRoom(NewRoomId)
+    GameplayObject.SetResult("You enter another room.")
 
-		# when moving from room to room - turns are registered - not extra moves.
-		# fix this somehow
-		transitions = mapObjects.get(playerCharacter.getRoom()).getConnections()
-		dictValue = transitions.get((playerCharacter.getX(), playerCharacter.getY()))
-		if dictValue != None:
-			newRoomID = list(dictValue.keys())
-			playerCharacter.setX(dictValue.get(newRoomID[0])[0])
-			playerCharacter.setY(dictValue.get(newRoomID[0])[1])
-			playerCharacter.changeRoom(newRoomID[0])
-			gamePlay.setResult("You enter another room.")
 
-	print("You leave the building.\n"
-		  "CONGRATULATIONS. YOU HAVE BEATEN THE GAME")
-	act = input("Press ENTER to exit.")
+def Main():
+    (
+        PlayerCharacter,
+        DisplayObject,
+        GameplayObject,
+        CharacterList,
+        MapObjects,
+    ) = BuildGame()
 
-main()
+    DisplayObject.ClearScreen()
+    print(
+        "You wake up and find yourself on the floor, lying on your back.\n"
+        "You blink rapidly, then push yourself upright as the drowsiness fades.\n"
+    )
+    input("Press Enter To Begin: ")
+
+    while PlayerCharacter.GetRoom() != 3:
+        CurrentMap = MapObjects.get(PlayerCharacter.GetRoom())
+
+        DisplayObject.ClearScreen()
+        DisplayObject.PrintDisplay(CharacterList, CurrentMap.GetMap())
+
+        CurrentResult = GameplayObject.ShowResult()
+        if CurrentResult:
+            print(CurrentResult)
+
+        GameplayObject.ClearResult()
+        print(CurrentMap.GetMapSummary())
+
+        ActionText = input("COMMAND: ")
+        GameplayObject.CharacterActions(
+            ActionText,
+            CurrentMap.GetMap(),
+            PlayerCharacter,
+            False,
+        )
+
+        HandleRoomTransition(PlayerCharacter, GameplayObject, MapObjects)
+
+    print(
+        "You leave the building.\n"
+        "CONGRATULATIONS.\n"
+        "YOU HAVE BEATEN THE GAME."
+    )
+    input("Press Enter To Exit: ")
+
+
+if __name__ == "__main__":
+    Main()
