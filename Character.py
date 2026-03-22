@@ -66,14 +66,22 @@ class Character:
     def RemoveItemAt(self, Index):
         return self.Inventory.pop(Index)
 
-    def AddItem(self, ItemObject):
-        if ItemObject.GetIsStackable():
-            for ExistingItem in self.Inventory:
-                if ExistingItem.CanStackWith(ItemObject):
-                    ExistingItem.AddQuantity(ItemObject.GetQuantity())
+    def AddItem(self, itemObject):
+        if not itemObject.GetIsStackable():
+            self.Inventory.append(itemObject)
+            return
+    
+        remainingQuantity = itemObject.GetQuantity()
+    
+        for existingItem in self.Inventory:
+            if existingItem.CanStackWith(itemObject):
+                remainingQuantity = existingItem.AddQuantity(remainingQuantity)
+                if remainingQuantity == 0:
                     return
-        self.Inventory.append(ItemObject)
-
+    
+        itemObject.SetQuantity(remainingQuantity)
+        self.Inventory.append(itemObject)
+        
     def SetX(self, NewX):
         self.X = NewX
 
