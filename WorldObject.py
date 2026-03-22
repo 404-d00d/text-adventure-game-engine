@@ -31,6 +31,22 @@ class WorldObject:
     def SetIsPassable(self, NewState):
         self.IsPassable = NewState
 
+    def AddItem(self, ItemObject):
+        if not ItemObject.GetIsStackable():
+            self.Inventory.append(ItemObject)
+            return
+
+        RemainingQuantity = ItemObject.GetQuantity()
+
+        for ExistingItem in self.Inventory:
+            if ExistingItem.CanStackWith(ItemObject):
+                RemainingQuantity = ExistingItem.AddQuantity(RemainingQuantity)
+                if RemainingQuantity == 0:
+                    return
+
+        ItemObject.SetQuantity(RemainingQuantity)
+        self.Inventory.append(ItemObject)
+
     def FormatInventory(self):
         Lines = ["===", "OBJECT INVENTORY"]
         if not self.Inventory:
@@ -49,52 +65,25 @@ class WorldObject:
     def ShowInventory(self):
         print(self.FormatInventory())
 
-    def LootInventory(self, player):
-        selection = ""
-    
-        while selection != "e":
+    def LootInventory(self, Player, InputFunction=input, OutputFunction=print):
+        if not self.Inventory:
+            return "There is nothing inside."
+
+        while True:
+            OutputFunction(self.FormatInventory())
+            OutputFunction("e: Exit Inventory")
+            Selection = InputFunction("Choose Your Option: ").strip()
+
+            if Selection.lower() == "e":
+                return "You are done with this item."
+
             try:
-                self.showInventory()
-                print("e: exit inventory")
-                selection = input("Choose your option: ")
-    
-                if selection == "e":
-                    break
-    
-                selection = int(selection)
-                item = self.inventory.pop(selection)
-                print(item.getName() + " is the item you selected.")
-    
-                player.addItem(item)
-    
+                SelectionIndex = int(Selection)
+                ItemObject = self.Inventory.pop(SelectionIndex)
+                OutputFunction(ItemObject.GetName() + " is the item you selected.")
+                Player.AddItem(ItemObject)
             except (ValueError, IndexError):
-                print("This option is not valid.")
-    
-        return "You are done with this item"
-
-
-def placeIntoInventory(self, player):
-    selection = ""
-
-    while selection != "e":
-        try:
-            player.showInventory()
-            print("e: exit inventory")
-            selection = input("Choose your option: ")
-
-            if selection == "e":
-                break
-
-            selection = int(selection)
-            item = player.getInventory().pop(selection)
-            print(item.getName() + " is the item you put into the object")
-
-            self.inventory.append(item)
-
-        except (ValueError, IndexError):
-            print("This option is not valid.")
-
-    return "You are done with this item"
+                OutputFunction("This option is not valid.")
 
     def PlaceIntoInventory(self, Player, InputFunction=input, OutputFunction=print):
         if not Player.GetInventory():
@@ -111,7 +100,7 @@ def placeIntoInventory(self, player):
             try:
                 SelectionIndex = int(Selection)
                 ItemObject = Player.RemoveItemAt(SelectionIndex)
-                self.Inventory.append(ItemObject)
+                self.AddItem(ItemObject)
                 OutputFunction(ItemObject.GetName() + " is the item you put into the object.")
             except (ValueError, IndexError):
                 OutputFunction("This option is not valid.")
