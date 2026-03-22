@@ -1,11 +1,11 @@
 class Item:
-    def __init__(self, Id, Name, Description, IsStackable, Quantity=1, MaxQuantity=1):
-        self.Id = Id
-        self.Name = Name
-        self.Description = Description
-        self.IsStackable = IsStackable
-        self.Quantity = 1 if not IsStackable else Quantity
-        self.MaxQuantity = 1 if not IsStackable else MaxQuantity
+    def __init__(self, id, name, description, isStackable, quantity=1, maxQuantity=1):
+        self.Id = id
+        self.Name = name
+        self.Description = description
+        self.IsStackable = isStackable
+        self.Quantity = 1 if not isStackable else quantity
+        self.MaxQuantity = 1 if not isStackable else maxQuantity
 
     def GetId(self):
         return self.Id
@@ -25,30 +25,46 @@ class Item:
     def GetMaxQuantity(self):
         return self.MaxQuantity
 
-    def CanStackWith(self, OtherItem):
+    def SetQuantity(self, newQuantity):
+        if not self.IsStackable:
+            self.Quantity = 1
+            return
+
+        if self.MaxQuantity > 0:
+            self.Quantity = max(0, min(newQuantity, self.MaxQuantity))
+        else:
+            self.Quantity = max(0, newQuantity)
+
+    def CanStackWith(self, otherItem):
         return (
             self.IsStackable
-            and OtherItem.GetIsStackable()
-            and self.Id == OtherItem.GetId()
-            and self.Name == OtherItem.GetName()
+            and otherItem.GetIsStackable()
+            and self.Id == otherItem.GetId()
+            and self.Name == otherItem.GetName()
         )
 
-    def AddQuantity(self, Amount):
+    def AddQuantity(self, amount):
         if not self.IsStackable:
-            return False
+            return amount
 
-        NewQuantity = self.Quantity + Amount
-        if self.MaxQuantity > 0:
-            NewQuantity = min(NewQuantity, self.MaxQuantity)
-        self.Quantity = NewQuantity
-        return True
+        if amount <= 0:
+            return 0
 
-    def RemoveQuantity(self, Amount):
+        if self.MaxQuantity <= 0:
+            self.Quantity += amount
+            return 0
+
+        spaceLeft = self.MaxQuantity - self.Quantity
+        addedAmount = min(spaceLeft, amount)
+        self.Quantity += addedAmount
+        return amount - addedAmount
+
+    def RemoveQuantity(self, amount):
         if not self.IsStackable:
             self.Quantity = 0
             return
 
-        self.Quantity = max(0, self.Quantity - Amount)
+        self.Quantity = max(0, self.Quantity - amount)
 
     def CreateUnique(self):
         return Item(
@@ -56,26 +72,6 @@ class Item:
             self.Name,
             self.Description,
             self.IsStackable,
-            self.Quantity,
-            self.MaxQuantity,
-        )
-
-
-class Key(Item):
-    def __init__(self, Id, Name, Description, IsStackable, DoorId, Quantity=1, MaxQuantity=1):
-        super().__init__(Id, Name, Description, IsStackable, Quantity, MaxQuantity)
-        self.DoorId = DoorId
-
-    def GetDoorId(self):
-        return self.DoorId
-
-    def CreateUnique(self):
-        return Key(
-            self.Id,
-            self.Name,
-            self.Description,
-            self.IsStackable,
-            self.DoorId,
             self.Quantity,
             self.MaxQuantity,
         )
