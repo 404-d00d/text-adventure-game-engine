@@ -5,7 +5,7 @@ from WorldObject import WorldObject
 from Doors import Door, CodeLockedDoor, KeyedLockedDoor
 from Toilet import Toilet
 from Map import Map
-from Item import Key
+from Key import Key
 
 
 def BuildGame():
@@ -49,7 +49,7 @@ def BuildGame():
 
     HallwayMapGrid = [
         [Wall.CreateUnique([]), HorizontalCodeDoor, Wall.CreateUnique([])],
-        [VerticalDoor.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
+        [VerticalDoor, Space.CreateUnique([]), Wall.CreateUnique([])],
         [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
         [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
         [Wall.CreateUnique([]), Space.CreateUnique([]), Wall.CreateUnique([])],
