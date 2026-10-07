@@ -133,11 +133,15 @@ def Main():
         print(CurrentMap.GetMapSummary())
 
         ActionText = input("COMMAND: ")
+        if len(ActionText) > 1:
+            SequenceCommands =  True
+        else:
+            SequenceCommands = False
         GameplayObject.CharacterActions(
             ActionText,
             CurrentMap.GetMap(),
             PlayerCharacter,
-            False,
+            SequenceCommands,
         )
 
         HandleRoomTransition(PlayerCharacter, GameplayObject, MapObjects)
