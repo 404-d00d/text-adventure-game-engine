@@ -134,9 +134,9 @@ def Main():
 
         ActionText = input("COMMAND: ")
         if len(ActionText) > 1:
-            SequenceCommands =  True
-        else:
             SequenceCommands = False
+        else:
+            SequenceCommands = True
         GameplayObject.CharacterActions(
             ActionText,
             CurrentMap.GetMap(),
