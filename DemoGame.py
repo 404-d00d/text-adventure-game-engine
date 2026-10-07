@@ -6,6 +6,8 @@ from Doors import Door, CodeLockedDoor, KeyedLockedDoor
 from Toilet import Toilet
 from Map import Map
 from Key import Key
+from Game import Game
+from Transition import Transition
 
 
 def BuildGame():
@@ -14,12 +16,12 @@ def BuildGame():
     GameplayObject = Gameplay()
 
     MapTransition1 = {
-        (4, 1): {2: (1, 1)},
+        (4, 1): Transition(2, 0, 1, "You enter the hallway."),
     }
 
     MapTransition2 = {
-        (0, 1): {1: (3, 1)},
-        (2, 9): {3: (0, 0)},
+        (0, 1): Transition(1, 4, 1, "You enter the bathroom."),
+        (2, 9): Transition(3, 0, 0, "You step through the exit."),
     }
 
     Key1 = Key(
@@ -82,35 +84,15 @@ def BuildGame():
         2: Map2,
     }
 
-    return PlayerCharacter, DisplayObject, GameplayObject, CharacterList, MapObjects
+    GameObject = Game(PlayerCharacter, GameplayObject, MapObjects)
 
-
-def HandleRoomTransition(PlayerCharacter, GameplayObject, MapObjects):
-    CurrentMap = MapObjects.get(PlayerCharacter.GetRoom())
-    if CurrentMap is None:
-        return
-
-    Transitions = CurrentMap.GetConnections()
-    TransitionData = Transitions.get((PlayerCharacter.GetX(), PlayerCharacter.GetY()))
-    if TransitionData is None:
-        return
-
-    NewRoomId = list(TransitionData.keys())[0]
-    NewPosition = TransitionData[NewRoomId]
-    PlayerCharacter.SetX(NewPosition[0])
-    PlayerCharacter.SetY(NewPosition[1])
-    PlayerCharacter.ChangeRoom(NewRoomId)
-    GameplayObject.SetResult("You enter another room.")
+    return GameObject, DisplayObject, CharacterList
 
 
 def Main():
-    (
-        PlayerCharacter,
-        DisplayObject,
-        GameplayObject,
-        CharacterList,
-        MapObjects,
-    ) = BuildGame()
+    GameObject, DisplayObject, CharacterList = BuildGame()
+    PlayerCharacter = GameObject.GetPlayerCharacter()
+    GameplayObject = GameObject.GetGameplayObject()
 
     DisplayObject.ClearScreen()
     print(
@@ -120,7 +102,7 @@ def Main():
     input("Press Enter To Begin: ")
 
     while PlayerCharacter.GetRoom() != 3:
-        CurrentMap = MapObjects.get(PlayerCharacter.GetRoom())
+        CurrentMap = GameObject.GetCurrentMap()
 
         DisplayObject.ClearScreen()
         DisplayObject.PrintDisplay(CharacterList, CurrentMap.GetMap())
@@ -133,25 +115,14 @@ def Main():
         print(CurrentMap.GetMapSummary())
 
         ActionText = input("COMMAND: ")
-        if len(ActionText) > 1:
-            SequenceCommands = False
-        else:
-            SequenceCommands = True
-        GameplayObject.CharacterActions(
-            ActionText,
-            CurrentMap.GetMap(),
-            PlayerCharacter,
-            SequenceCommands,
-        )
-
-        HandleRoomTransition(PlayerCharacter, GameplayObject, MapObjects)
+        GameObject.ProcessCommands(ActionText)
 
     print(
         "You leave the building.\n"
         "CONGRATULATIONS.\n"
         "YOU HAVE BEATEN THE GAME."
     )
-    input("Press Enter To Exit: ")
+    input("Press Enter To Exit:")
 
 
 if __name__ == "__main__":

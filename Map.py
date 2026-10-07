@@ -1,8 +1,8 @@
 class Map:
-    def __init__(self, Id, Cells, MapDict, MapSummary):
+    def __init__(self, Id, Cells, Transitions, MapSummary):
         self.Id = Id
         self.Cells = Cells
-        self.ConnectingRooms = MapDict
+        self.Transitions = Transitions
         self.MapSummary = MapSummary
 
     def GetMap(self):
@@ -11,8 +11,11 @@ class Map:
     def GetId(self):
         return self.Id
 
-    def GetConnections(self):
-        return self.ConnectingRooms
+    def GetTransitions(self):
+        return self.Transitions
+
+    def GetTransitionAt(self, X, Y):
+        return self.Transitions.get((X, Y))
 
     def GetSpecificCell(self, X, Y):
         return self.Cells[Y][X]

@@ -1,16 +1,4 @@
 class Gameplay:
-    CommandHandlers = {
-        "e": "RotateRight",
-        "q": "RotateLeft",
-        "w": "MoveForward",
-        "a": "MoveSideLeft",
-        "s": "MoveBackward",
-        "d": "MoveSideRight",
-        "f": "InteractForward",
-        "F": "InteractCurrentTile",
-        "i": "InventoryMenu",
-    }
-
     def __init__(self, InputFunction=input, OutputFunction=print):
         self.Result = ""
         self.InputFunction = InputFunction
@@ -76,52 +64,42 @@ class Gameplay:
     def ExecuteCommand(self, CommandCharacter, MapGrid, PlayerCharacter):
         if CommandCharacter == "e":
             PlayerCharacter.MoveCharacter(MapGrid, "right")
-            return True
+            return True, False
 
         if CommandCharacter == "q":
             PlayerCharacter.MoveCharacter(MapGrid, "left")
-            return True
+            return True, False
 
         if CommandCharacter == "w":
-            PlayerCharacter.MoveCharacter(MapGrid, "forward")
-            return True
+            DidMove = PlayerCharacter.MoveCharacter(MapGrid, "forward")
+            return True, DidMove
 
         if CommandCharacter == "a":
-            PlayerCharacter.MoveCharacter(MapGrid, "sideleft")
-            return True
+            DidMove = PlayerCharacter.MoveCharacter(MapGrid, "sideleft")
+            return True, DidMove
 
         if CommandCharacter == "s":
-            PlayerCharacter.MoveCharacter(MapGrid, "backward")
-            return True
+            DidMove = PlayerCharacter.MoveCharacter(MapGrid, "backward")
+            return True, DidMove
 
         if CommandCharacter == "d":
-            PlayerCharacter.MoveCharacter(MapGrid, "sideright")
-            return True
+            DidMove = PlayerCharacter.MoveCharacter(MapGrid, "sideright")
+            return True, DidMove
 
         if CommandCharacter == "f":
             self.InteractObject(PlayerCharacter, MapGrid, True)
-            return False
+            return False, False
 
         if CommandCharacter == "F":
             self.InteractObject(PlayerCharacter, MapGrid, False)
-            return False
+            return False, False
 
         if CommandCharacter == "i":
             self.InventoryMenu(PlayerCharacter)
-            return False
+            return False, False
 
         if CommandCharacter.strip() == "":
-            return True
+            return True, False
 
         self.Result = "ERROR: Not a valid command."
-        return False
-
-    def CharacterActions(self, ActionText, MapGrid, PlayerCharacter, IsSingleCommand):
-        if IsSingleCommand:
-            self.ExecuteCommand(ActionText, MapGrid, PlayerCharacter)
-            return
-
-        for CommandCharacter in ActionText:
-            ShouldContinue = self.ExecuteCommand(CommandCharacter, MapGrid, PlayerCharacter)
-            if not ShouldContinue:
-                break
+        return False, False
