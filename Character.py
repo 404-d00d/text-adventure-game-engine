@@ -102,6 +102,12 @@ class Character:
         TargetDirection = (self.Direction + RotationOffset - 1) % 4 + 1
         return self.GetDirectionalOffset(TargetDirection)
 
+    def GetMovementTarget(self, Command):
+        DeltaX, DeltaY = self.GetMovementOffset(Command)
+        NewX = self.X + DeltaX
+        NewY = self.Y + DeltaY
+        return NewX, NewY
+
     def MoveCharacter(self, MapGrid, Command):
         if Command == "right":
             self.RotateRight()

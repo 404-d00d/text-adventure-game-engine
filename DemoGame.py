@@ -17,10 +17,12 @@ def BuildGame():
 
     MapTransition1 = {
         (4, 1): Transition(2, 0, 1, "You enter the hallway."),
+        (5, 1): Transition(2, 0, 2, "You enter the hallway."),
     }
 
     MapTransition2 = {
         (0, 1): Transition(1, 4, 1, "You enter the bathroom."),
+        (-1, 1): Transition(1, 3, 1, "You enter the bathroom."),
         (2, 9): Transition(3, 0, 0, "You step through the exit."),
     }
 
