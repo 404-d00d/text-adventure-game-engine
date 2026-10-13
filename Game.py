@@ -1,3 +1,4 @@
+
 class Game:
     MovementCommands = {
         "w": "forward",
@@ -100,14 +101,11 @@ class Game:
                 self.ProcessMovement(MovementCommand)
                 continue
 
-            ShouldContinue, DidMove = self.GameplayObject.ExecuteCommand(
+            ShouldContinue = self.GameplayObject.ExecuteCommand(
                 CommandCharacter,
                 CurrentMap.GetMap(),
                 self.PlayerCharacter,
             )
-
-            if DidMove:
-                self.HandleMapTransition()
 
             if not ShouldContinue:
                 break

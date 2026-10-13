@@ -21,6 +21,7 @@ class Display:
             4: "_",
             -4: "|",
             0: ".",
+            -1: " "
         }
         return SymbolMap.get(DisplayId, " ")
 

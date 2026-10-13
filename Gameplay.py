@@ -1,3 +1,4 @@
+
 class Gameplay:
     def __init__(self, InputFunction=input, OutputFunction=print):
         self.Result = ""
@@ -63,43 +64,27 @@ class Gameplay:
 
     def ExecuteCommand(self, CommandCharacter, MapGrid, PlayerCharacter):
         if CommandCharacter == "e":
-            PlayerCharacter.MoveCharacter(MapGrid, "right")
-            return True, False
+            PlayerCharacter.RotateRight()
+            return True
 
         if CommandCharacter == "q":
-            PlayerCharacter.MoveCharacter(MapGrid, "left")
-            return True, False
-
-        if CommandCharacter == "w":
-            DidMove = PlayerCharacter.MoveCharacter(MapGrid, "forward")
-            return True, DidMove
-
-        if CommandCharacter == "a":
-            DidMove = PlayerCharacter.MoveCharacter(MapGrid, "sideleft")
-            return True, DidMove
-
-        if CommandCharacter == "s":
-            DidMove = PlayerCharacter.MoveCharacter(MapGrid, "backward")
-            return True, DidMove
-
-        if CommandCharacter == "d":
-            DidMove = PlayerCharacter.MoveCharacter(MapGrid, "sideright")
-            return True, DidMove
+            PlayerCharacter.RotateLeft()
+            return True
 
         if CommandCharacter == "f":
             self.InteractObject(PlayerCharacter, MapGrid, True)
-            return False, False
+            return False
 
         if CommandCharacter == "F":
             self.InteractObject(PlayerCharacter, MapGrid, False)
-            return False, False
+            return False
 
         if CommandCharacter == "i":
             self.InventoryMenu(PlayerCharacter)
-            return False, False
+            return False
 
         if CommandCharacter.strip() == "":
-            return True, False
+            return True
 
         self.Result = "ERROR: Not a valid command."
-        return False, False
+        return False
